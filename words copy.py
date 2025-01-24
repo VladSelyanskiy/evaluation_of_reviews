@@ -12,10 +12,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
-from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 
-np.random.seed(1)
 
 reviews = pd.read_table("reviews.txt", header=None, encoding="utf-8")
 reviews.head()
@@ -106,6 +104,7 @@ for name, model in models:
     accuracy = nltk.classify.accuracy(nltk_model, test)
     print("{} model Accuracy: {}".format(name, accuracy))
 
+from sklearn.ensemble import VotingClassifier
 
 models = list(zip(names, classifiers))
 
