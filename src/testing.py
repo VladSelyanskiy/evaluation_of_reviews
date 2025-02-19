@@ -19,14 +19,18 @@ root.grid_columnconfigure(index=1, weight=1)
 
 label = tk.Label(
     root,
-    text="Нижмите кнопку 'выбрать файл'\n чтобы опознать несколько строк из текстового файла\n",
-    font="Times 15",
+    text="Чтобы опознать из текстового файла\nНажмите кнопку <выбрать файл>'\n",
+    font="ansi 15",
+    anchor="nw",
+    justify="left",
 ).grid(row=0, sticky=tk.NSEW, column=0)
 
 label = tk.Label(
     root,
     text="Или введи текст в ячейку ниже\n",
-    font="Times 20",
+    font="ansi 15",
+    anchor="nw",
+    justify="left",
 ).grid(row=2, sticky=tk.NSEW)
 
 
