@@ -15,8 +15,11 @@ vectorizer = TfidfVectorizer(
 
 classes = {0: "negative", 1: "positive"}
 
-with open(r"src\models\test.pickle", "rb") as file:
-    model = dill.load(file)["model"]
+with open(r"src\models\logistic_regression_classifier.pickle", "rb") as file:
+    logreg_model = dill.load(file)["model"]
+
+with open(r"src\models\naive_bayes_classifier.pickle", "rb") as file:
+    nb_model = dill.load(file)["model"]
 
 
 def tokenize_sentence(sentence: str, remove_stop_words: bool = True):
@@ -28,5 +31,10 @@ def tokenize_sentence(sentence: str, remove_stop_words: bool = True):
     return tokens
 
 
-def use_model(text):
-    return classes[model.predict([text])[0]]
+def use_model_nb(text):
+
+    return classes[nb_model.predict([text])[0]]
+
+
+def use_model_lr(text):
+    return classes[logreg_model.predict([text])[0]]
