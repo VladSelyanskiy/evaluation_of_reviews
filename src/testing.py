@@ -21,18 +21,14 @@ root.grid_columnconfigure(index=1, weight=1)
 
 label = tk.Label(
     root,
-    text="Чтобы опознать из текстового файла\nНажмите кнопку <выбрать файл>'\n",
-    font="ansi 15",
-    anchor="nw",
-    justify="left",
+    text="Чтобы опознать из текстового файла нажмите кнопку <open file>",
+    font="ansi 12",
 ).grid(row=0, sticky=tk.NSEW, column=0)
 
 label = tk.Label(
     root,
-    text="Или введи текст в ячейку ниже\n",
-    font="ansi 15",
-    anchor="nw",
-    justify="left",
+    text="Или введи текст в ячейку ниже",
+    font="ansi 12",
 ).grid(row=2, sticky=tk.NSEW)
 
 
@@ -50,7 +46,7 @@ def read_text():
 def open_file():
     filepath = filedialog.askopenfilename()
     if filepath != "":
-        with open(filepath, "r") as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             c = 0
             for text in file.read().split("---"):
                 c += 1
@@ -62,7 +58,7 @@ def open_file():
 read_button = ttk.Button(text="read text", command=read_text)
 read_button.grid(row=5, sticky=tk.NSEW, column=0)
 
-file_button = ttk.Button(text="read text", command=open_file)
+file_button = ttk.Button(text="open file", command=open_file)
 file_button.grid(row=1, sticky=tk.NSEW, column=0)
 
 answer = tk.Text(height=3)
