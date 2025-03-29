@@ -1,4 +1,4 @@
-from usage_of_models import use_model_nb, use_model_lr, tokenize_sentence
+from backend.models.usage_of_models import use_model_nb, use_model_lr, tokenize_sentence
 
 import tkinter as tk
 from tkinter import ttk

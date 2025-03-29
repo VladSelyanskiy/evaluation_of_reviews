@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 # local imports
-from src.usage_of_models import Classifier
+from backend.models.usage_of_models import Classifier
 
 # Создание FastAPI приложения
 app = FastAPI()
