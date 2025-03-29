@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 # local imports
-from backend.models.usage_of_models import Classifier
+from src.backend.models.classifier import Classifier
 
 # Создание FastAPI приложения
 app = FastAPI()
@@ -94,5 +94,5 @@ async def inference(data: ServiceInput) -> JSONResponse:
 
 
 """
-uvicorn main:app
+uvicorn src.backend.main:app
 """
