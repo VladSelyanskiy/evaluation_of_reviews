@@ -9,20 +9,22 @@ from fastapi.responses import JSONResponse
 
 # local imports
 from src.backend.models.classifier import Classifier
+from src.backend.shemas.service_output import ServiceOutput
+from src.backend.shemas.service_config import config
 
 # Создание FastAPI приложения
 app = FastAPI()
 
 # логирование
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=config.LOG_LEVEL,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
 logger = logging.getLogger(__name__)
 
-service_config_path = "src//main.py"
-
-
-# датакласс выхода сервиса
-class ServiceOutput(pydantic.BaseModel):
-    class_name: str = pydantic.Field("class")
+service_config_path = r"src\backend\shemas\service_config.py"
 
 
 # датакласс входа сервиса
@@ -30,29 +32,38 @@ class ServiceInput(pydantic.BaseModel):
     review: str = pydantic.Field("text")
 
 
-logger.info(f"\tЗагружена конфигурация сервиса по пути: {service_config_path}")
+logger.info(f"Загружена конфигурация сервиса по пути: {service_config_path}")
 
-logger.info("\tЗагрузка моделeй")
+logger.info("Загрузка моделeй")
 models = Classifier()
-logger.info("\tМодели загружены")
+logger.info("Модели загружены")
 
 
 # функция обработки запроса
 def get_class(text: str, clf: str = "logreg") -> str:
 
     logger.info(
-        f"\tВызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
+        f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
     )
 
     if clf == "logreg":
-        logger.info("\tИспользование логистической регрессии")
+        logger.info("Использование логистической регрессии")
         return models.use_model_lr(text)
     elif clf == "nb":
-        logger.info("\tИспользование наивного байеса")
+        logger.info("Использование наивного байеса")
         return models.use_model_nb(text)
     else:
         logger.error(f"Неизвестный классификатор: {clf}")
         return "Unknown classifier"
+
+
+def get_class_name(value: int) -> str:
+    if value == 0:
+        return "negative"
+    elif value == 1:
+        return "positive"
+    else:
+        return "Unknown class"
 
 
 # точка доступа для проверки жизни сервиса
@@ -77,19 +88,24 @@ def health_check() -> str:
 @app.post("/string/")
 async def inference(data: ServiceInput) -> JSONResponse:
 
-    logger.info("\tПолучен запрос на обработку текста")
-    logger.info("\tПолучение текста")
-    text = data.review.strip()
-    logger.info(f"\tПолучен текст: {text if len(text) <= 10 else text[:10]+"..."}")
-    logger.info("\tПередача текста к модели")
+    logger.info("Получен запрос на обработку текста")
+    logger.info("Получение текста")
+    text = data.review
+    logger.info(f"Получен текст: {text if len(text) <= 10 else text[:10]+"..."}")
 
+    logger.info("Передача текста к модели")
     result = get_class(text)
-    logger.info(f"\tРезультат обработки текста: {result}")
+    logger.info(f"Результат обработки текста: {result}")
 
-    service_output = ServiceOutput(class_name=result)
+    logger.info("Создание ServiceOutput")
+    service_output = ServiceOutput(
+        **{"class_name": get_class_name(result), "class_number": result, "text": text}
+    )
+
+    logger.info("Создание JSON представления ServiceOutput")
     service_output_json = service_output.model_dump(mode="json")
 
-    logger.info("\tОтправка результата обработки в формате JSON")
+    logger.info("Отправка результата обработки в формате JSON")
     return JSONResponse(content=jsonable_encoder(service_output_json))
 
 

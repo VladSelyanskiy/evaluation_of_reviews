@@ -15,10 +15,10 @@ class Classifier:
     ) as file:
         nb_model = dill.load(file)["model"]
 
-    def use_model_nb(self, text):
+    def use_model_nb(self, text: str) -> int:
         prediction = self.nb_model.predict([text])
-        return self.classes[prediction[0]]
+        return prediction[0]
 
-    def use_model_lr(self, text):
+    def use_model_lr(self, text: str) -> int:
         prediction = self.nb_model.predict([text])
-        return self.classes[prediction[0]]
+        return prediction[0]
