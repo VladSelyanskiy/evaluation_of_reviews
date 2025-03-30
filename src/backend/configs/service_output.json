@@ -1,0 +1,14 @@
+{
+    "logging": {
+        "level": "INFO",
+        "file_path": null
+    },
+    "api": {
+        "host": "0.0.0.0",
+        "port": 8000
+    },
+    "model": {
+        "path": "src/backend/models_weights/logistic_regression_classifier.pickle",
+        "version": "1.0.0"
+    }
+}
