@@ -1,0 +1,21 @@
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Логи и кэш
+*.log
+*.tmp
+*.cache
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+
+# Виртуальное окружение
+venv/
+.env
+
+# Кэш и бинарные файлы
+*.pyc
+__pycache__/
