@@ -1,9 +1,15 @@
+"""
+Модуль настроек приложения.
+"""
+
 from typing import Optional, List
-from pydantic_settings import BaseSettings
 from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    """Настройки для модели машинного обучения и API."""
+
     # Настройки модели машинного обучения
     MODEL_PATH: str = Field(
         default=r"src\backend\models_weights\logistic_regression_classifier.pickle",

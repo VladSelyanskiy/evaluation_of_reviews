@@ -40,7 +40,7 @@ logger.info("Модели загружены")
 
 
 # функция обработки запроса
-def get_class(text: str, clf: str = "logreg") -> str:
+def get_class(text: str, clf: str = "naive_bayes") -> str:
 
     logger.info(
         f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
@@ -49,7 +49,7 @@ def get_class(text: str, clf: str = "logreg") -> str:
     if clf == "logreg":
         logger.info("Использование логистической регрессии")
         return models.use_model_lr(text)
-    elif clf == "nb":
+    elif clf == "naive_bayes":
         logger.info("Использование наивного байеса")
         return models.use_model_nb(text)
     else:
@@ -57,6 +57,7 @@ def get_class(text: str, clf: str = "logreg") -> str:
         return "Unknown classifier"
 
 
+# получение имени класса по его индексу
 def get_class_name(value: int) -> str:
     if value == 0:
         return "negative"
