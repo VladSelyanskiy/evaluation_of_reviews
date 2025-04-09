@@ -8,7 +8,7 @@
         "port": 8000
     },
     "model": {
-        "path": "src/backend/models_weights/logistic_regression_classifier.pickle",
+        "path": "src/backend/models_weights/naive_bayes_classifier.pickle",
         "version": "1.0.0"
     }
 }
