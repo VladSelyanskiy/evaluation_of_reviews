@@ -40,7 +40,7 @@ logger.info("Модели загружены")
 
 
 # функция обработки запроса
-def get_class(text: str, clf: str = "naive_bayes") -> str:
+def get_class(text: str, clf: str = "naive_bayes") -> int:
 
     logger.info(
         f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
@@ -48,13 +48,13 @@ def get_class(text: str, clf: str = "naive_bayes") -> str:
 
     if clf == "logreg":
         logger.info("Использование логистической регрессии")
-        return models.use_model_lr(text)
+        return int(models.use_model_lr(text))
     elif clf == "naive_bayes":
         logger.info("Использование наивного байеса")
-        return models.use_model_nb(text)
+        return int(models.use_model_nb(text))
     else:
         logger.error(f"Неизвестный классификатор: {clf}")
-        return "Unknown classifier"
+        return -1
 
 
 # получение имени класса по его индексу
@@ -100,7 +100,7 @@ async def inference(data: ServiceInput) -> JSONResponse:
 
     logger.info("Создание ServiceOutput")
     service_output = ServiceOutput(
-        **{"class_name": get_class_name(result), "class_number": result, "text": text}
+        class_name=get_class_name(result), class_number=result, text=text
     )
 
     logger.info("Создание JSON представления ServiceOutput")

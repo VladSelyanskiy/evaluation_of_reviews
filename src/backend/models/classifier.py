@@ -1,4 +1,4 @@
-import dill
+import dill  # type: ignore
 
 
 class Classifier:

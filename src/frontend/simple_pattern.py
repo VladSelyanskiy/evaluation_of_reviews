@@ -1,4 +1,4 @@
-from backend.models.classifier import Classifier
+from backend.models.classifier import Classifier  # type: ignore
 
 import tkinter as tk
 from tkinter import ttk
@@ -51,8 +51,8 @@ def open_file():
             for text in file.read().split("---"):
                 c += 1
                 answer.insert(tk.END, f"{c}:\n")
-                answer.insert(tk.END, f"~~~ {use_model_nb(text)} \n")
-                answer.insert(tk.END, f"~~~ {use_model_lr(text)} \n")
+                answer.insert(tk.END, f"~~~ {Classifier.use_model_nb(text)} \n")
+                answer.insert(tk.END, f"~~~ {Classifier.use_model_lr(text)} \n")
 
 
 read_button = ttk.Button(text="read text", command=read_text)

@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 
-import requests
+import requests  # type: ignore
 
 
 class MyApp(QWidget):
@@ -69,7 +69,7 @@ class MyApp(QWidget):
 
         # Третье поле для результата
 
-        self.output: str
+        self.output: str = ""
 
         # Создаем метку для третьего поля
         self.text_for_result = QLabel("Результат:")
@@ -156,7 +156,7 @@ class MyApp(QWidget):
         except requests.exceptions.RequestException as exception:
             self.show_error_message(
                 message="Не удалось получить ответ от сервера",
-                detailed_message=exception,
+                detailed_message=str(exception),
             )
             return None
 
@@ -183,7 +183,7 @@ class MyApp(QWidget):
                 break
         return out
 
-    def show_error_message(self, message: str, detailed_message: str = None) -> None:
+    def show_error_message(self, message: str, detailed_message: str = "") -> None:
         msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Icon.Critical)
         msg.setWindowTitle("Ошибка")
