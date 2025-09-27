@@ -1,13 +1,13 @@
 # Standard python library imports
 import logging
 
-# Related third party importsi
+# Related third party imports
 import pydantic
 from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-# local imports
+# Local imports
 from src.backend.models.classifier import Classifier
 from src.backend.shemas.service_output import ServiceOutput
 from src.backend.shemas.service_config import config
@@ -15,7 +15,7 @@ from src.backend.shemas.service_config import config
 # Создание FastAPI приложения
 app = FastAPI()
 
-# логирование
+# Логирование
 logging.basicConfig(
     level=config.LOG_LEVEL,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 service_config_path = r"src\backend\shemas\service_config.py"
 
 
-# датакласс входа сервиса
+# Датакласс входа сервиса
 class ServiceInput(pydantic.BaseModel):
     review: str = pydantic.Field("text")
 
@@ -39,7 +39,7 @@ models = Classifier()
 logger.info("Модели загружены")
 
 
-# функция обработки запроса
+# Функция обработки запроса
 def get_class(text: str, clf: str = "naive_bayes") -> int:
 
     logger.info(
@@ -57,7 +57,7 @@ def get_class(text: str, clf: str = "naive_bayes") -> int:
         return -1
 
 
-# получение имени класса по его индексу
+# Получение имени класса по его индексу
 def get_class_name(value: int) -> str:
     if value == 0:
         return "negative"
@@ -67,7 +67,7 @@ def get_class_name(value: int) -> str:
         return "Unknown class"
 
 
-# точка доступа для проверки жизни сервиса
+# Точка доступа для проверки жизни сервиса
 @app.get(
     "/health",
     tags=["healthcheck"],
@@ -85,7 +85,7 @@ def health_check() -> str:
     return '{"Status" : "OK"}'
 
 
-# точка доступа для обработки текстового запроса
+# Точка доступа для обработки текстового запроса
 @app.post("/string/")
 async def inference(data: ServiceInput) -> JSONResponse:
 
