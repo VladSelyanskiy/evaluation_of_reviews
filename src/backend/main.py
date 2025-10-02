@@ -1,13 +1,14 @@
 # Standard python library imports
 import logging
 
-# Related third party importsi
+# Related third party imports
 import pydantic
+import uvicorn
 from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-# local imports
+# Local imports
 from src.backend.models.classifier import Classifier
 from src.backend.shemas.service_output import ServiceOutput
 from src.backend.shemas.service_config import config
@@ -15,7 +16,7 @@ from src.backend.shemas.service_config import config
 # Создание FastAPI приложения
 app = FastAPI()
 
-# логирование
+# Логирование
 logging.basicConfig(
     level=config.LOG_LEVEL,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 service_config_path = r"src\backend\shemas\service_config.py"
 
 
-# датакласс входа сервиса
+# Датакласс входа сервиса
 class ServiceInput(pydantic.BaseModel):
     review: str = pydantic.Field("text")
 
@@ -39,8 +40,8 @@ models = Classifier()
 logger.info("Модели загружены")
 
 
-# функция обработки запроса
-def get_class(text: str, clf: str = "naive_bayes") -> str:
+# Функция обработки запроса
+def get_class(text: str, clf: str = "naive_bayes") -> int:
 
     logger.info(
         f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
@@ -54,10 +55,10 @@ def get_class(text: str, clf: str = "naive_bayes") -> str:
         return models.use_model_nb(text)
     else:
         logger.error(f"Неизвестный классификатор: {clf}")
-        return "Unknown classifier"
+        return -1
 
 
-# получение имени класса по его индексу
+# Получение имени класса по его индексу
 def get_class_name(value: int) -> str:
     if value == 0:
         return "negative"
@@ -67,7 +68,7 @@ def get_class_name(value: int) -> str:
         return "Unknown class"
 
 
-# точка доступа для проверки жизни сервиса
+# Точка доступа для проверки жизни сервиса
 @app.get(
     "/health",
     tags=["healthcheck"],
@@ -85,7 +86,7 @@ def health_check() -> str:
     return '{"Status" : "OK"}'
 
 
-# точка доступа для обработки текстового запроса
+# Точка доступа для обработки текстового запроса
 @app.post("/string/")
 async def inference(data: ServiceInput) -> JSONResponse:
 
@@ -100,7 +101,7 @@ async def inference(data: ServiceInput) -> JSONResponse:
 
     logger.info("Создание ServiceOutput")
     service_output = ServiceOutput(
-        **{"class_name": get_class_name(result), "class_number": result, "text": text}
+        class_name=get_class_name(result), class_number=result, text=text
     )
 
     logger.info("Создание JSON представления ServiceOutput")
@@ -110,6 +111,5 @@ async def inference(data: ServiceInput) -> JSONResponse:
     return JSONResponse(content=jsonable_encoder(service_output_json))
 
 
-"""
-uvicorn src.backend.main:app
-"""
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
