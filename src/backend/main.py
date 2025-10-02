@@ -2,7 +2,6 @@
 import logging
 
 # Related third party imports
-import pydantic
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
@@ -10,7 +9,8 @@ from fastapi.responses import JSONResponse
 
 # Local imports
 from models.classifier import Classifier
-from shemas.service_output import ServiceOutput
+from shemas.service_input import ServiceInput
+from shemas.service_output import ServiceOutput, ServiceOutputList
 from shemas.service_config import config
 
 # Создание FastAPI приложения
@@ -22,17 +22,11 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-
 logger = logging.getLogger(__name__)
 
+NUMBER_OF_FIRST_CHAR: int = 13
+
 service_config_path = r"src\backend\shemas\service_config.py"
-
-
-# Датакласс входа сервиса
-class ServiceInput(pydantic.BaseModel):
-    review: str = pydantic.Field("text")
-
-
 logger.info(f"Загружена конфигурация сервиса по пути: {service_config_path}")
 
 logger.info("Загрузка моделeй")
@@ -68,6 +62,26 @@ def get_class_name(value: int) -> str:
         return "Unknown class"
 
 
+# Создвние выходных данных на основании текста отзыва
+def create_output_from_text(text: str, count: int = 0) -> ServiceOutput:
+
+    logger.info(f"Получен текст {count}: {text[:NUMBER_OF_FIRST_CHAR] + "..."}")
+
+    logger.info(f"Передача текста {count} к модели")
+    class_number = get_class(text)
+    logger.info(f"Результат обработки текста {count}: {class_number}")
+
+    logger.info("Создание ServiceOutput")
+    service_output = ServiceOutput(
+        class_name=get_class_name(class_number),
+        class_number=class_number,
+        text_beginning=(text[:NUMBER_OF_FIRST_CHAR] + "..."),
+        text_number=count,
+    )
+
+    return service_output
+
+
 # Точка доступа для проверки жизни сервиса
 @app.get(
     "/health",
@@ -90,22 +104,19 @@ def health_check() -> str:
 @app.post("/string/")
 async def inference(data: ServiceInput) -> JSONResponse:
 
-    logger.info("Получен запрос на обработку текста")
-    logger.info("Получение текста")
-    text = data.review
-    logger.info(f"Получен текст: {text if len(text) <= 10 else text[:10]+"..."}")
+    logger.info("Получен запрос на обработку текстов")
+    logger.info("Получение текстов")
 
-    logger.info("Передача текста к модели")
-    result = get_class(text)
-    logger.info(f"Результат обработки текста: {result}")
-
-    logger.info("Создание ServiceOutput")
-    service_output = ServiceOutput(
-        class_name=get_class_name(result), class_number=result, text=text
+    logger.info("Создание ServiceOutputList")
+    outputs = ServiceOutputList(
+        output_list=[
+            create_output_from_text(text=text, count=count)
+            for count, text in enumerate(data.reviews, 1)
+        ]
     )
 
-    logger.info("Создание JSON представления ServiceOutput")
-    service_output_json = service_output.model_dump(mode="json")
+    logger.info("Создание JSON представления ServiceOutputList")
+    service_output_json = outputs.model_dump(mode="json")
 
     logger.info("Отправка результата обработки в формате JSON")
     return JSONResponse(content=jsonable_encoder(service_output_json))
