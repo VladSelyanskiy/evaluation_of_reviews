@@ -9,9 +9,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 # Local imports
-from src.backend.models.classifier import Classifier
-from src.backend.shemas.service_output import ServiceOutput
-from src.backend.shemas.service_config import config
+from models.classifier import Classifier
+from shemas.service_output import ServiceOutput
+from shemas.service_config import config
 
 # Создание FastAPI приложения
 app = FastAPI()

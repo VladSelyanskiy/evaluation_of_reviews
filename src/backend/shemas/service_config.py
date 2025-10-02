@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Настройки API
     API_HOST: str = Field(
-        default="0.0.0.0",
+        default="127.0.0.1",
         description="Хост API",
     )
     API_PORT: int = Field(
