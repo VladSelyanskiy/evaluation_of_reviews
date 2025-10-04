@@ -6,6 +6,7 @@ Thumbs.db
 *.log
 *.tmp
 *.cache
+*.mypy_cache
 
 # Файлы IDE
 .idea/
@@ -15,6 +16,7 @@ Thumbs.db
 # Виртуальное окружение
 venv/
 .env
+.venv
 
 # Кэш и бинарные файлы
 *.pyc
