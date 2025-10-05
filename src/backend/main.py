@@ -65,7 +65,7 @@ def get_class_name(value: int) -> str:
 # Создвние выходных данных на основании текста отзыва
 def create_output_from_text(text: str, count: int = 0) -> ServiceOutput:
 
-    logger.info(f"Получен текст {count}: {text[:NUMBER_OF_FIRST_CHAR] + "..."}")
+    logger.info(f"Получен текст {count}: {text[:NUMBER_OF_FIRST_CHAR]}...")
 
     logger.info(f"Передача текста {count} к модели")
     class_number = get_class(text)
