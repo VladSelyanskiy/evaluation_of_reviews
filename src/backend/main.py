@@ -35,11 +35,17 @@ logger.info("Модели загружены")
 
 
 # Функция обработки запроса
-def get_class(text: str, clf: str = "naive_bayes") -> int:
+def get_class(text: str, clf: str = "naive_bayes", weights: str = "common") -> int:
 
     logger.info(
-        f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
+        "Вызвана функция определения класса текста с параметрами: "
+        + f"text = {text[:5]}..., clf = {clf}, weights = {weights}"
     )
+
+    # TODO
+    # Здесь будет передаваться либо текст, либо список текстов в модель
+    # и дополнительно категория для выбора весов.
+    # Это все планируется реализовать в классе модели
 
     if clf == "logreg":
         logger.info("Использование логистической регрессии")
@@ -63,15 +69,17 @@ def get_class_name(value: int) -> str:
 
 
 # Создвние выходных данных на основании текста отзыва
-def create_output_from_text(text: str, count: int = 0) -> ServiceOutput:
+def create_output_from_text(
+    text: str, count: int = 0, category: str = "common"
+) -> ServiceOutput:
 
     logger.info(f"Получен текст {count}: {text[:NUMBER_OF_FIRST_CHAR]}...")
 
     logger.info(f"Передача текста {count} к модели")
-    class_number = get_class(text)
+    class_number = get_class(text, weights=category)
     logger.info(f"Результат обработки текста {count}: {class_number}")
 
-    logger.info("Создание ServiceOutput")
+    logger.info(f"Создание ServiceOutput номер {count}")
     service_output = ServiceOutput(
         class_name=get_class_name(class_number),
         class_number=class_number,
@@ -105,12 +113,12 @@ def health_check() -> str:
 async def inference(data: ServiceInput) -> JSONResponse:
 
     logger.info("Получен запрос на обработку текстов")
-    logger.info("Получение текстов")
+    logger.info(f"Получены тексты с категорией <{data.category}>")
 
     logger.info("Создание ServiceOutputList")
     outputs = ServiceOutputList(
         output_list=[
-            create_output_from_text(text=text, count=count)
+            create_output_from_text(text=text, count=count, category=data.category)
             for count, text in enumerate(data.reviews, 1)
         ]
     )
