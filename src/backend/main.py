@@ -19,17 +19,15 @@ app = FastAPI()
 
 # Логирование
 logging.basicConfig(
-    level=config.LOG_LEVEL,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=config.LOG_LEVEL, format=config.LOG_FORMAT, filename=config.LOG_FILE
 )
 
 logger = logging.getLogger(__name__)
 
-service_config_path = r"src\backend\shemas\service_config.py"
-logger.info(f"Загружена конфигурация сервиса по пути: {service_config_path}")
+logger.info(f"Загружена конфигурация сервиса по пути: {config.SERVICE_CONFIG_PATH}")
 
 try:
-    with sqlite3.connect(r"src\backend\databases\reviews.db") as connection:
+    with sqlite3.connect(config.DATABASE_PATH) as connection:
         cursor = connection.cursor()
 
         # Create table
@@ -77,7 +75,7 @@ async def inference(new_data: ServiceInput) -> JSONResponse:
     logger.info("Получение ServiceOutputList завершено")
 
     try:
-        with sqlite3.connect(r"src\backend\databases\reviews.db") as connection:
+        with sqlite3.connect(config.DATABASE_PATH) as connection:
 
             cursor = connection.cursor()
             logger.info("Добавление текстов в базу данных")
@@ -102,4 +100,4 @@ async def inference(new_data: ServiceInput) -> JSONResponse:
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host=config.API_HOST, port=config.API_PORT, reload=True)

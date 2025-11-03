@@ -1,4 +1,8 @@
+# Related third party imports
 import dill  # type: ignore
+
+# Local imports
+from shemas.service_config import config
 
 
 class Classifier:
@@ -9,13 +13,11 @@ class Classifier:
     classes = {0: "negative", 1: "positive"}
 
     # Загрузка модели логистической регрессии
-    with open(
-        r"src\backend\models_weights\logistic_regression_classifier.pickle", "rb"
-    ) as f:
+    with open(config.LOGISTIC_REGRESSION_CLASSIFIER_PATH, "rb") as f:
         logreg_model = dill.load(f)["model"]
 
     # Загрузка модели наивного Байеса
-    with open(r"src\backend\models_weights\naive_bayes_classifier.pickle", "rb") as f:
+    with open(config.NAIVE_BAYES_CLASSIFIER_PATH, "rb") as f:
         nb_model = dill.load(f)["model"]
 
     def use_model_nb(self, text: str) -> int:
