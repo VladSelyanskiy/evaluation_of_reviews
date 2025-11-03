@@ -2,19 +2,30 @@
 Модуль настроек приложения.
 """
 
+import os
 from typing import Optional, List
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Настройки для модели машинного обучения и API."""
+    """Настройки для моделей машинного обучения и API."""
 
-    # Настройки модели машинного обучения
-    MODEL_PATH: str = Field(
-        default=r"src\backend\models_weights\logistic_regression_classifier.pickle",
-        description="Путь к обученной модели",
+    # Веса моделей
+    LOGISTIC_REGRESSION_CLASSIFIER_PATH: str = Field(
+        default=os.path.join(
+            "src", "backend", "models_weights", "logistic_regression_classifier.pickle"
+        ),
+        description="Путь к весам модели логистической регрессии",
     )
+    NAIVE_BAYES_CLASSIFIER_PATH: str = Field(
+        default=os.path.join(
+            "src", "backend", "models_weights", "naive_bayes_classifier.pickle"
+        ),
+        description="Путь к весам модели наивного байесовского классификатора",
+    )
+
+    # Параметры модели
     CLASS_NAMES: List[str] = Field(
         default=["negative", "positive"],
         description="Названия классов",
@@ -35,6 +46,10 @@ class Settings(BaseSettings):
     )
 
     # Логирование и мониторинг
+    SERVICE_CONFIG_PATH: str = Field(
+        default=os.path.join("src", "backend", "shemas", "service_config.py"),
+        description="Путь к конфигурации сервиса",
+    )
     LOG_LEVEL: str = Field(
         default="INFO",
         description="Уровень логирования (DEBUG/INFO/WARNING/ERROR)",
@@ -42,6 +57,16 @@ class Settings(BaseSettings):
     LOG_FILE: Optional[str] = Field(
         default=None,
         description="Путь к файлу логов (None = вывод в консоль)",
+    )
+    LOG_FORMAT: str = Field(
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        description="Формат логов",
+    )
+
+    # База данных
+    DATABASE_PATH: str = Field(
+        default=os.path.join("src", "backend", "databases", "reviews.db"),
+        description="Путь к основной базе данных",
     )
 
 
