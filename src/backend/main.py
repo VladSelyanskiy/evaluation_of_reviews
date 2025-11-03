@@ -1,5 +1,6 @@
 # Standard python library imports
 import logging
+import sqlite3
 
 # Related third party imports
 import uvicorn
@@ -26,6 +27,21 @@ logger = logging.getLogger(__name__)
 
 service_config_path = r"src\backend\shemas\service_config.py"
 logger.info(f"Загружена конфигурация сервиса по пути: {service_config_path}")
+
+try:
+    with sqlite3.connect(r"src\backend\databases\reviews.db") as connection:
+        cursor = connection.cursor()
+
+        # Create table
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS reviews \
+                (id INTEGER PRIMARY KEY, text TEXT, \
+                class_name TEXT, class_number INTEGER)"
+        )
+        connection.commit()
+
+except sqlite3.Error as e:
+    logger.error(f"An error occurred: {e}")
 
 
 # Точка доступа для проверки жизни сервиса
@@ -59,6 +75,24 @@ async def inference(new_data: ServiceInput) -> JSONResponse:
     logger.info("Начало получения ServiceOutputList")
     outputs: ServiceOutputList = handler.get_outputs()
     logger.info("Получение ServiceOutputList завершено")
+
+    try:
+        with sqlite3.connect(r"src\backend\databases\reviews.db") as connection:
+
+            cursor = connection.cursor()
+            logger.info("Добавление текстов в базу данных")
+            for output in outputs.output_list:
+                # Insert data
+                cursor.execute(
+                    "INSERT INTO reviews \
+                        (text, class_name, class_number) \
+                        VALUES (?, ?, ?)",
+                    (output.text_beginning, output.class_name, output.class_number),
+                )
+
+            logger.info("Добавлены тексты в базу данных")
+    except sqlite3.Error as e:
+        logger.error(f"An error occurred: {e}")
 
     logger.info("Создание JSON представления ServiceOutputList")
     service_output_json = outputs.model_dump(mode="json")
