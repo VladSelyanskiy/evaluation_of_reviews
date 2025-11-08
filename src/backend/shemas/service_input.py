@@ -16,3 +16,6 @@ class ServiceInput(BaseModel):
     # Категория отзывов
     # По умолчанию используются общие веса для модели
     category: str = Field(default="common")
+    # Тип используемой модели
+    # По умолчанию используются общие веса для классической байесовской модели
+    model_type: str = Field(default="naive_bayes")

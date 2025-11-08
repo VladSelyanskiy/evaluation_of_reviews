@@ -1,17 +1,17 @@
-"""
-Модуль настроек приложения.
-"""
-
+# Standard python library imports
 import os
 from typing import Optional, List
+
+# Related third party imports
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
+# Модуль настроек приложения
 class Settings(BaseSettings):
     """Настройки для моделей машинного обучения и API."""
 
-    # Веса моделей
+    # Пути к весам моделей
     LOGISTIC_REGRESSION_CLASSIFIER_PATH: str = Field(
         default=os.path.join(
             "src", "backend", "models_weights", "logistic_regression_classifier.pickle"
@@ -24,8 +24,20 @@ class Settings(BaseSettings):
         ),
         description="Путь к весам модели наивного байесовского классификатора",
     )
+    LSTM_FOR_2_ClASSES_CLASSIFIER_PATH: str = Field(
+        default=os.path.join(
+            "src", "backend", "models_weights", "LSTM_model_2nd_class.h5"
+        ),
+        description="Путь к весам LSTM модели для двух классов",
+    )
+    TOKENIZER_FOR_LSTM2CLASSES_PATH: str = Field(
+        default=os.path.join(
+            "src", "backend", "models_weights", "2nd_class_tokenizer.pickle"
+        ),
+        description="Путь к токенизатору для LSTM модели 2 классов",
+    )
 
-    # Параметры модели
+    # Параметры модели двух классов
     CLASS_NAMES: List[str] = Field(
         default=["negative", "positive"],
         description="Названия классов",
@@ -33,6 +45,10 @@ class Settings(BaseSettings):
     MODEL_VERSION: str = Field(
         default="1.0.0",
         description="Версия модели (для мониторинга)",
+    )
+    CLASS_THRESHOLD: float = Field(
+        default=0.5,
+        description="Порог для классификации",
     )
 
     # Настройки API
@@ -61,6 +77,12 @@ class Settings(BaseSettings):
     LOG_FORMAT: str = Field(
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         description="Формат логов",
+    )
+
+    # Параметр размера выходного текста
+    NUMBER_OF_FIRST_CHAR: int = Field(
+        default=13,
+        description="Количество первых символов в выходном тексте",
     )
 
     # База данных
