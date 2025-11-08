@@ -9,7 +9,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 # Local imports
-from shemas.service_handler import Handler
+from shemas.handler2cls import Handler2Cls
 from shemas.service_input import ServiceInput
 from shemas.service_output import ServiceOutputList
 from shemas.service_config import config
@@ -64,11 +64,12 @@ def health_check() -> str:
 @app.post("/string/")
 async def inference(new_data: ServiceInput) -> JSONResponse:
 
-    logger.info("Получен запрос на обработку текстов")
-    logger.info(f"Получены тексты с категорией <{new_data.category}>")
+    logger.info(
+        f"Получен запрос на обработку текстов с параметрами: категория - <{new_data.category}>, модель - <{new_data.model_type}>"
+    )
 
     logger.info("Создание обработчика Handler")
-    handler: Handler = Handler(data=new_data)
+    handler: Handler2Cls = Handler2Cls(data=new_data, model_type=new_data.model_type)
 
     logger.info("Начало получения ServiceOutputList")
     outputs: ServiceOutputList = handler.get_outputs()
