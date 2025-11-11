@@ -36,19 +36,31 @@ class Settings(BaseSettings):
         ),
         description="Путь к токенизатору для LSTM модели 2 классов",
     )
+    WEIGHTS_FOR_RT2_3CLASSES_PATH: str = Field(
+        default=os.path.join("src", "backend", "models_weights", "model_RT2_3_classes"),
+        description="Путь к папке с весами и токенизатором модели для трех классов",
+    )
 
     # Параметры модели двух классов
+    MODELS_FOR_2_CLASSES: list[str] = Field(
+        default=["naive_bayes", "log_reg", "lstm"],
+        description="Названия моделей для классификации двух классов",
+    )
+    MODELS_FOR_3_CLASSES: list[str] = Field(
+        default=["rt_2"],
+        description="Названия моделей для классификации трех классов",
+    )
     CLASS_NAMES: List[str] = Field(
         default=["negative", "positive"],
-        description="Названия классов",
-    )
-    MODEL_VERSION: str = Field(
-        default="1.0.0",
-        description="Версия модели (для мониторинга)",
+        description="Названия классов двух типов",
     )
     CLASS_THRESHOLD: float = Field(
         default=0.5,
         description="Порог для классификации",
+    )
+    CLASS_3_NAMES: List[str] = Field(
+        default=["negative", "neutral", "positive"],
+        description="Названия классов трех типов",
     )
 
     # Настройки API
