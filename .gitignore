@@ -30,3 +30,8 @@ venv/
 # Кэш и бинарные файлы
 *.pyc
 __pycache__/
+
+# Веса моделей
+*.safetensors
+*.pickle
+*.h5
