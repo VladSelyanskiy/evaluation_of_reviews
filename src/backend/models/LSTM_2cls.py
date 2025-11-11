@@ -5,7 +5,7 @@ import pickle
 import tensorflow as tf
 
 # Local imports
-from shemas.service_config import config
+from tools.service_config import config
 
 
 class LSTM2Classes:

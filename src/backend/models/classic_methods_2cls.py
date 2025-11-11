@@ -2,7 +2,7 @@
 import dill  # type: ignore
 
 # Local imports
-from shemas.service_config import config
+from tools.service_config import config
 
 
 class Classifier:

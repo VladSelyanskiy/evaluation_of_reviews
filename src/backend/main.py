@@ -9,10 +9,10 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 # Local imports
-from shemas.handler2cls import Handler2Cls
-from shemas.service_input import ServiceInput
-from shemas.service_output import ServiceOutputList
-from shemas.service_config import config
+from tools.handler import MainHandler
+from tools.service_input import ServiceInput
+from tools.service_output import ServiceOutputList
+from tools.service_config import config
 
 # Создание FastAPI приложения
 app = FastAPI()
@@ -37,7 +37,6 @@ try:
                 class_name TEXT, class_number INTEGER)"
         )
         connection.commit()
-
 except sqlite3.Error as e:
     logger.error(f"An error occurred: {e}")
 
@@ -69,7 +68,7 @@ async def inference(new_data: ServiceInput) -> JSONResponse:
     )
 
     logger.info("Создание обработчика Handler")
-    handler: Handler2Cls = Handler2Cls(data=new_data, model_type=new_data.model_type)
+    handler: MainHandler = MainHandler(data=new_data)
 
     logger.info("Начало получения ServiceOutputList")
     outputs: ServiceOutputList = handler.get_outputs()
