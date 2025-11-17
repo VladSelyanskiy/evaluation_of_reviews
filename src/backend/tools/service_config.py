@@ -40,6 +40,14 @@ class Settings(BaseSettings):
         default=os.path.join("src", "backend", "models_weights", "model_RT2_3_classes"),
         description="Путь к папке с весами и токенизатором модели для трех классов",
     )
+    WEIGHTS_FOR_RT2_5CLASSES_PATH: str = Field(
+        default=os.path.join("src", "backend", "models_weights", "model_RT2_5_classes"),
+        description="Путь к папке с весами и токенизатором модели для пяти классов",
+    )
+    STOPWORDS_FOR_RT2_PATH: str = Field(
+        default=os.path.join("src", "backend", "models_weights", "stopwords.json"),
+        description="Путь к файлу со стопсловами для модели RT2",
+    )
 
     # Параметры модели двух классов
     MODELS_FOR_2_CLASSES: list[str] = Field(
@@ -47,8 +55,12 @@ class Settings(BaseSettings):
         description="Названия моделей для классификации двух классов",
     )
     MODELS_FOR_3_CLASSES: list[str] = Field(
-        default=["rt_2"],
+        default=["rt2_3cls"],
         description="Названия моделей для классификации трех классов",
+    )
+    MODELS_FOR_5_CLASSES: list[str] = Field(
+        default=["rt2_5cls"],
+        description="Названия моделей для классификации пяти классов",
     )
     CLASS_NAMES: List[str] = Field(
         default=["negative", "positive"],
@@ -62,7 +74,10 @@ class Settings(BaseSettings):
         default=["negative", "neutral", "positive"],
         description="Названия классов трех типов",
     )
-
+    CLASS_5_NAMES: List[str] = Field(
+        default=["very_negative", "negative", "neutral", "positive", "very_positive"],
+        description="Названия классов пяти типов",
+    )
     # Настройки API
     API_HOST: str = Field(
         default="127.0.0.1",

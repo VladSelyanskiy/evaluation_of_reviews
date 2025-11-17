@@ -19,6 +19,8 @@ class ServiceOutput(BaseModel):
     text_beginning: str = Field(default="class_text_beginning")
     # Номер отзыва
     text_number: int = Field(default=0)
+    # Вероятность класса
+    class_confidence: float = Field(default=-1.0)
 
 
 # Датакласс списка с выходами сервиса

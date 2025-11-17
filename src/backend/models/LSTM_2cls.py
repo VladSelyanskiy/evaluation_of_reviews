@@ -25,10 +25,17 @@ class LSTM2Classes:
             print("Токенизатор не найден.")
             self.tokenizer = None
 
-    def use_model_lstm(self, text) -> int:
+    def use_model_lstm(self, text) -> tuple[int, float]:
         sequence = self.tokenizer.texts_to_sequences([text])
         data = tf.keras.preprocessing.sequence.pad_sequences(
             sequence, maxlen=self.max_sequence_length
         )
-        prediction = self.LSTM_model.predict(data)
-        return prediction[0]
+        proba = self.LSTM_model.predict(data)[0]
+        if proba >= config.CLASS_THRESHOLD:
+            prediction = 1
+            proba = proba
+        else:
+            prediction = 0
+            proba = 1 - proba
+
+        return (prediction, proba)
