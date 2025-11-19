@@ -33,3 +33,8 @@ class ServiceOutputList(BaseModel):
 
     # Лист содержащий ServiceOutput для нескольких текстов
     output_list: list[ServiceOutput] = Field(default_factory=list[ServiceOutput])
+
+    class_names: list[str] = Field(default_factory=list[str])
+    class_numbers: str = Field(default=list[int])
+    model_type: str = Field(default="model_type")
+    category: str = Field(default="category")

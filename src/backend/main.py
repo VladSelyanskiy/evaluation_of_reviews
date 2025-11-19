@@ -92,6 +92,19 @@ async def inference(new_data: ServiceInput) -> JSONResponse:
     except sqlite3.Error as e:
         logger.error(f"An error occurred: {e}")
 
+    logger.info("Добавление дополнительной информации")
+    outputs.model_type = new_data.model_type
+    outputs.category = new_data.category
+    if new_data.model_type in config.MODELS_FOR_2_CLASSES:
+        outputs.class_names = config.CLASS_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_NAMES)))
+    if new_data.model_type in config.MODELS_FOR_3_CLASSES:
+        outputs.class_names = config.CLASS_3_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_3_NAMES)))
+    if new_data.model_type in config.MODELS_FOR_5_CLASSES:
+        outputs.class_names = config.CLASS_5_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_5_NAMES)))
+
     logger.info("Создание JSON представления ServiceOutputList")
     service_output_json = outputs.model_dump(mode="json")
 
