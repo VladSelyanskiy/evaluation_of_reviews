@@ -108,7 +108,7 @@ class Settings(BaseSettings):
 
     # Параметр размера выходного текста
     NUMBER_OF_FIRST_CHAR: int = Field(
-        default=13,
+        default=2,
         description="Количество первых символов в выходном тексте",
     )
 
