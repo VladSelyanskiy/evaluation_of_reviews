@@ -1,73 +1,47 @@
 # Standard python library imports
 import logging
+import sqlite3
 
-# Related third party importsi
-import pydantic
+# Related third party imports
+import uvicorn
 from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-# local imports
-from src.backend.models.classifier import Classifier
-from src.backend.shemas.service_output import ServiceOutput
-from src.backend.shemas.service_config import config
+# Local imports
+from tools.handler import MainHandler
+from tools.service_input import ServiceInput
+from tools.service_output import ServiceOutputList
+from tools.service_config import config
 
 # Создание FastAPI приложения
 app = FastAPI()
 
-# логирование
+# Логирование
 logging.basicConfig(
-    level=config.LOG_LEVEL,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=config.LOG_LEVEL, format=config.LOG_FORMAT, filename=config.LOG_FILE
 )
-
 
 logger = logging.getLogger(__name__)
 
-service_config_path = r"src\backend\shemas\service_config.py"
+logger.info(f"Загружена конфигурация сервиса по пути: {config.SERVICE_CONFIG_PATH}")
+
+try:
+    with sqlite3.connect(config.DATABASE_PATH) as connection:
+        cursor = connection.cursor()
+
+        # Create table
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS reviews \
+                (id INTEGER PRIMARY KEY, text TEXT, \
+                class_name TEXT, class_number INTEGER)"
+        )
+        connection.commit()
+except sqlite3.Error as e:
+    logger.error(f"An error occurred: {e}")
 
 
-# датакласс входа сервиса
-class ServiceInput(pydantic.BaseModel):
-    review: str = pydantic.Field("text")
-
-
-logger.info(f"Загружена конфигурация сервиса по пути: {service_config_path}")
-
-logger.info("Загрузка моделeй")
-models = Classifier()
-logger.info("Модели загружены")
-
-
-# функция обработки запроса
-def get_class(text: str, clf: str = "naive_bayes") -> str:
-
-    logger.info(
-        f"Вызвана функция определения класса текста с параметрами: text={text[:5]}..., clf={clf}"
-    )
-
-    if clf == "logreg":
-        logger.info("Использование логистической регрессии")
-        return models.use_model_lr(text)
-    elif clf == "naive_bayes":
-        logger.info("Использование наивного байеса")
-        return models.use_model_nb(text)
-    else:
-        logger.error(f"Неизвестный классификатор: {clf}")
-        return "Unknown classifier"
-
-
-# получение имени класса по его индексу
-def get_class_name(value: int) -> str:
-    if value == 0:
-        return "negative"
-    elif value == 1:
-        return "positive"
-    else:
-        return "Unknown class"
-
-
-# точка доступа для проверки жизни сервиса
+# Точка доступа для проверки жизни сервиса
 @app.get(
     "/health",
     tags=["healthcheck"],
@@ -85,31 +59,58 @@ def health_check() -> str:
     return '{"Status" : "OK"}'
 
 
-# точка доступа для обработки текстового запроса
+# Точка доступа для обработки текстового запроса
 @app.post("/string/")
-async def inference(data: ServiceInput) -> JSONResponse:
+async def inference(new_data: ServiceInput) -> JSONResponse:
 
-    logger.info("Получен запрос на обработку текста")
-    logger.info("Получение текста")
-    text = data.review
-    logger.info(f"Получен текст: {text if len(text) <= 10 else text[:10]+"..."}")
-
-    logger.info("Передача текста к модели")
-    result = get_class(text)
-    logger.info(f"Результат обработки текста: {result}")
-
-    logger.info("Создание ServiceOutput")
-    service_output = ServiceOutput(
-        **{"class_name": get_class_name(result), "class_number": result, "text": text}
+    logger.info(
+        f"Получен запрос на обработку текстов с параметрами: категория - <{new_data.category}>, модель - <{new_data.model_type}>"
     )
 
-    logger.info("Создание JSON представления ServiceOutput")
-    service_output_json = service_output.model_dump(mode="json")
+    logger.info("Создание обработчика Handler")
+    handler: MainHandler = MainHandler(data=new_data)
+
+    logger.info("Начало получения ServiceOutputList")
+    outputs: ServiceOutputList = handler.get_outputs()
+    logger.info("Получение ServiceOutputList завершено")
+
+    try:
+        with sqlite3.connect(config.DATABASE_PATH) as connection:
+
+            cursor = connection.cursor()
+            logger.info("Добавление текстов в базу данных")
+            for output in outputs.output_list:
+                # Insert data
+                cursor.execute(
+                    "INSERT INTO reviews \
+                        (text, class_name, class_number) \
+                        VALUES (?, ?, ?)",
+                    (output.text_beginning, output.class_name, output.class_number),
+                )
+
+            logger.info("Добавлены тексты в базу данных")
+    except sqlite3.Error as e:
+        logger.error(f"An error occurred: {e}")
+
+    logger.info("Добавление дополнительной информации")
+    outputs.model_type = new_data.model_type
+    outputs.category = new_data.category
+    if new_data.model_type in config.MODELS_FOR_2_CLASSES:
+        outputs.class_names = config.CLASS_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_NAMES)))
+    if new_data.model_type in config.MODELS_FOR_3_CLASSES:
+        outputs.class_names = config.CLASS_3_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_3_NAMES)))
+    if new_data.model_type in config.MODELS_FOR_5_CLASSES:
+        outputs.class_names = config.CLASS_5_NAMES
+        outputs.class_numbers = list(range(len(config.CLASS_5_NAMES)))
+
+    logger.info("Создание JSON представления ServiceOutputList")
+    service_output_json = outputs.model_dump(mode="json")
 
     logger.info("Отправка результата обработки в формате JSON")
     return JSONResponse(content=jsonable_encoder(service_output_json))
 
 
-"""
-uvicorn src.backend.main:app
-"""
+if __name__ == "__main__":
+    uvicorn.run("main:app", host=config.API_HOST, port=config.API_PORT, reload=True)
