@@ -35,6 +35,6 @@ class ServiceOutputList(BaseModel):
     output_list: list[ServiceOutput] = Field(default_factory=list[ServiceOutput])
 
     class_names: list[str] = Field(default_factory=list[str])
-    class_numbers: str = Field(default=list[int])
+    class_numbers: list[int] = Field(default=list[int])
     model_type: str = Field(default="model_type")
     category: str = Field(default="category")
