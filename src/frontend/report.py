@@ -2,13 +2,15 @@
 import os
 import json
 import pandas as pd
+import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 # 3rd parties
 from mdutils.mdutils import MdUtils
 from markdown_pdf import MarkdownPdf, Section
-from typing import IO, TextIO
-from statistics import median, mean, quantiles
+from statistics import mean, quantiles
 
 
 # REPORT CLASS
@@ -24,7 +26,10 @@ class Report:
         Dummy summary function
         Change to a real one
         """
-        return "  \nThis is not a real summary function, and must be replaced.  "
+        df = pd.read_csv(os.path.join(path_to_dir, file_name + ".csv"))
+        df = df.rename(columns={"Unnamed: 0": "index", "text": "Reviews"})
+        str_df = "Number of reviews: " + str(df["Reviews"].count())
+        return str_df
 
     def get_pie_chart(path_to_dir: str, file_name: str) -> str:
         """
@@ -33,7 +38,15 @@ class Report:
         Returns path to pie chart image
         """
         df = json.load(open(os.path.join(path_to_dir, f"{file_name}.json")))
-        path_to_pie_chart = os.path.join(path_to_dir, f"{file_name}_pie_chart.png")
+
+        cache_path = os.path.join(path_to_dir, f"{file_name}_cache")
+        if not (os.path.exists(cache_path)):
+            os.mkdir(cache_path)
+        path_to_pie_chart = os.path.join(cache_path, "pie_chart.png")
+        try:
+            os.mkdir(os.path.join(path_to_dir, f"{file_name}_cache"))
+        except:
+            pass
 
         amounts = {_: 0 for _ in df["class_names"]}
 
@@ -65,7 +78,12 @@ class Report:
     def get_distribution(path_to_dir: str, file_name: str) -> str:
 
         df = json.load(open(os.path.join(path_to_dir, f"{file_name}.json")))
-        path_distribution = os.path.join(path_to_dir, f"{file_name}_distribution.png")
+
+        cache_path = os.path.join(path_to_dir, f"{file_name}_cache")
+        if not (os.path.exists(cache_path)):
+            os.mkdir(cache_path)
+        path_distribution = os.path.join(cache_path, "distribution.png")
+
         reviews = df["output_list"]
 
         confindence_assessments = {
@@ -87,7 +105,7 @@ class Report:
             if 0.8 <= p < 0.9:
                 confindence_assessments["[0.8, 0.9)"] += 1
             if 0.9 <= p <= 1.0:
-                confindence_assessments["[0.9, 1.6]"] += 1
+                confindence_assessments["[0.9, 1]"] += 1
 
         x = list(confindence_assessments.keys())
         y = list(confindence_assessments.values())
@@ -106,6 +124,87 @@ class Report:
         )
         return path_distribution
 
+    def get_distribution2(path_to_dir: str, file_name: str) -> str:
+
+        df = json.load(open(os.path.join(path_to_dir, f"{file_name}.json")))
+
+        cache_path = os.path.join(path_to_dir, f"{file_name}_cache")
+        if not (os.path.exists(cache_path)):
+            os.mkdir(cache_path)
+        path_distribution2 = os.path.join(cache_path, "distribution2.png")
+
+        reviews = df["output_list"]
+
+        intervals = [
+            "[0.5, 0.6)",
+            "[0.6, 0.7)",
+            "[0.7, 0.8)",
+            "[0.8, 0.9)",
+            "[0.9, 1]",
+        ][::-1]
+
+        confindence_assessments = {_: [0] * len(intervals) for _ in df["class_names"]}
+
+        for review in reviews:
+            p = review["class_confidence"]
+            i = review["class_name"]
+            if 0.5 <= p < 0.6:
+                confindence_assessments[i][4] += 1
+            if 0.6 <= p < 0.7:
+                confindence_assessments[i][3] += 1
+            if 0.7 <= p < 0.8:
+                confindence_assessments[i][2] += 1
+            if 0.8 <= p < 0.9:
+                confindence_assessments[i][1] += 1
+            if 0.9 <= p <= 1.0:
+                confindence_assessments[i][0] += 1
+
+        maximum = 0
+        for key in confindence_assessments.keys():
+            maximum = max(maximum, max(confindence_assessments[key]))
+
+        confindence_assessments["intervals"] = intervals
+        conf_and_ratings = pd.DataFrame(confindence_assessments).set_index("intervals")
+
+        raw_colors = [
+            ["#888888", "#FF0000"],
+            ["#888888", "#FF8800"],
+            ["#888888", "#FFFF00"],
+            ["#888888", "#88FF00"],
+            ["#888888", "#00FF00"],
+        ][::-1]
+
+        CCS = []  # Custom Color Schemes
+
+        for cmap in raw_colors:
+            new_cmap = LinearSegmentedColormap.from_list("custom_cmap", cmap)
+            CCS.append(new_cmap)
+
+        plt.title("Distribution")
+        f, axs = plt.subplots(len(intervals), 1, gridspec_kw={"hspace": 0})
+
+        counter = 0
+        for index, row in conf_and_ratings.iterrows():
+            sns.heatmap(
+                np.array([row.values]),
+                yticklabels=[intervals[counter]],
+                xticklabels=conf_and_ratings.columns,
+                annot=True,
+                fmt=".2f",
+                ax=axs[counter],
+                cmap=CCS[counter],
+                cbar=False,
+                vmin=0,  # Min scale value
+                vmax=maximum,  # Max scale value
+            )
+            counter += 1
+
+        plt.savefig(
+            path_distribution2,
+            bbox_inches="tight",
+        )
+        return path_distribution2
+
     def get_statistics(path_to_dir: str, file_name: str, more_info=False) -> str:
         df = json.load(open(os.path.join(path_to_dir, f"{file_name}.json")))
 
@@ -123,16 +222,22 @@ class Report:
 
         for i in range(len(df["class_numbers"])):
             number_of_reviews += f"- {labels[i]}: {amounts[i]}  \n"
+
         number_of_reviews += f"Total: {sum(amounts)}  \n\n"
 
         if more_info:
+            """
+            Needs .CSV file with texts of reviews.
+            """
             df = pd.read_csv(os.path.join(path_to_dir, f"{file_name}.csv"))
             df = df.rename(columns={"Unnamed: 0": "index", "text": "review"})
             words_number = []
             reviews_lengths = []
+
             for i in range(len(df["review"])):
-                words_number.append(len(df["review"][i].split()))
-                reviews_lengths.append(len(df["review"][i]))
+                review = df["review"][i]
+                words_number.append(len(review.split()))
+                reviews_lengths.append(len(review))
 
             mean_number = round(mean(words_number), 1)
             max_number = max(words_number)
@@ -175,35 +280,37 @@ class Report:
         review_summary = Report.get_summary(path_to_dir, file_name)
         review_pie_chart = Report.get_pie_chart(path_to_dir, file_name)
         review_distribution = Report.get_distribution(path_to_dir, file_name)
-        review_stats = Report.get_statistics(
-            path_to_dir, file_name, more_info=more_info
+
+        report_text = (
+            f"# Report on “{file_name}”  \n\n"
+            + f"## Summary: {review_summary}  \n\n"
+            + f"## Pie chart:  \n![python]({review_pie_chart})  \n\n"
+            + f"## Confidence distibution:  \n![python]({review_distribution})  \n\n"
         )
+
+        if more_info:
+            review_distribution2 = Report.get_distribution2(path_to_dir, file_name)
+            review_stats = Report.get_statistics(
+                path_to_dir, file_name, more_info=more_info
+            )
+            report_text = (
+                report_text
+                + f"## Statistics:  \n{review_stats}"
+                + f"## Confidence distibution by rates:  \n![python]({review_distribution2})  \n\n"
+            )
 
         markdown_file = MdUtils(
             file_name=path_to_report,
-            title=f"Report on “{file_name}”",
         )
 
-        markdown_file.new_paragraph(f"## Summary: {review_summary}  ")
-        markdown_file.new_paragraph(
-            f'## Pie chart:  \n![img]({review_pie_chart} "Pie Chart")  '
-        )
-        markdown_file.new_paragraph(
-            f'## Confidence distibution:  \n![img]({review_distribution} "Bar plot")  '
-        )
-
-        markdown_file.new_paragraph(f"## Statistics:  \n{review_stats}")
+        markdown_file.new_paragraph(report_text)
 
         markdown_file.create_md_file()
 
         pdf = MarkdownPdf(toc_level=2, optimize=True)
         pdf.add_section(
             Section(
-                f"# Report on “{file_name}”  \n\n"
-                + f"## Summary: {review_summary}  \n\n"
-                + f"## Pie chart:  \n![python]({review_pie_chart})  \n\n"
-                + f"## Confidence distibution:  \n![python]({review_distribution})  \n\n"
-                + f"## Statistics:  \n{review_stats}",
+                report_text,
                 toc=False,
             ),
             user_css="h1 {text-align:center;}",
@@ -212,7 +319,7 @@ class Report:
 
 
 def main():
-    path = "data.json"
+    path = "/path/to/file.json"
     Report.get_report(path, more_info=True)
 
 

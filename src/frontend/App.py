@@ -80,7 +80,6 @@ class Reader:
                 if name.endswith(".csv"):
                     with zip_ref.open(name) as file:
                         df_data = pd.concat(df_data, pd.read_csv(file))
-        print(data)
         if data:
             return pd.DataFrame(data.split("\n"), columns=["text"])
         else:
@@ -119,9 +118,15 @@ def classify(
         "category": category,
     }
     response = requests.post(API_URL, json=param)
-    with open("data.json", "w", encoding="utf-8") as f:
+
+    directory_name = "result"
+    try:
+        os.mkdir(directory_name)
+    except FileExistsError:
+        pass
+    with open(os.path.join(directory_name, "data.json"), "w", encoding="utf-8") as f:
         f.write(response.text)
-    df.to_csv("data.csv")
+    df.to_csv(os.path.join(directory_name, "data.csv"))
     return response.json()
 
 
@@ -138,7 +143,7 @@ def make_report(data: Dict[str, List]) -> str:
         f"Использованная модель: {data['model_type']}",
     ]
 
-    Report.get_report("data.json", True)
+    Report.get_report(os.path.join("result", "data.json"), True)
     return "\n".join(parts)
 
 
