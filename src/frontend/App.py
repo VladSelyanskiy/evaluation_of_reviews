@@ -101,16 +101,24 @@ def read_file(path: str) -> pd.DataFrame:
 
 
 def classify(
-    df: pd.DataFrame, model_type: str, category: str = "common"
+    df: pd.DataFrame,
+    model_type: str,
+    category: str = "common",
+    directory_name: str = "result",
 ) -> Dict[str, List]:
     API_URL = "http://localhost:8000/string/"
 
-    if model_type.startswith("3"):
-        model_type = "rt2_3cls"
-    elif model_type.startswith("5"):
-        model_type = "rt2_5cls"
-    else:
-        model_type = "lstm"
+    match model_type:
+        case "2 класса (logistic regression)":
+            model_type = "log_reg"
+        case "2 класса (naive bayes)":
+            model_type = "naive_bayes"
+        case "2 класса (lstm)":
+            model_type = "lstm"
+        case "3 класса":
+            model_type = "rt2_3cls"
+        case "5 классов":
+            model_type = "rt2_5cls"
 
     param = {
         "reviews": list(df.iloc[:, 0]),
@@ -119,7 +127,6 @@ def classify(
     }
     response = requests.post(API_URL, json=param)
 
-    directory_name = "result"
     try:
         os.mkdir(directory_name)
     except FileExistsError:
@@ -167,13 +174,19 @@ class ClassSelectionDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Заголовок
-        label = QLabel("Выберите количество классов:")
+        label = QLabel("Выберите количество классов и модель:")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
 
         # Радиокнопки
         self.radio_group = QButtonGroup(self)
-        for text in ("2 класса", "3 класса", "5 классов"):
+        for text in (
+            "2 класса (logistic regression)",
+            "2 класса (naive bayes)",
+            "2 класса (lstm)",
+            "3 класса",
+            "5 классов",
+        ):
             rb = QRadioButton(text)
             self.radio_group.addButton(rb)
             layout.addWidget(rb)

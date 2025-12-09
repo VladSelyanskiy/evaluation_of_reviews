@@ -27,8 +27,7 @@ class Report:
         Change to a real one
         """
         df = pd.read_csv(os.path.join(path_to_dir, file_name + ".csv"))
-        df = df.rename(columns={"Unnamed: 0": "index", "text": "Reviews"})
-        str_df = "Number of reviews: " + str(df["Reviews"].count())
+        str_df = "Number of reviews: " + str(df.iloc[:, 0].count())
         return str_df
 
     def get_pie_chart(path_to_dir: str, file_name: str) -> str:
